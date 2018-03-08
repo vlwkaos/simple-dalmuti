@@ -1,0 +1,11 @@
+{
+  "name": "dalmuti",
+  "version": "1.0.0",
+  "description": "dalmuti online game using socket.io",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "MG",
+  "license": "ISC"
+}
