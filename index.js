@@ -281,6 +281,8 @@ function joinRoom(socket,room_name){
         console.log('room full')
         socket.leave(room_name)
         socket.join('waiting room')
+        socket.emit('refresh waiting room', socket.userData, getCustomRooms(socket))
+        socket.emit('violation', 'Room is full')
         return
     }
 
