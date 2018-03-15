@@ -65,12 +65,16 @@ socket.on('update sender', (user)=>{
 	$('#room-title').text(user.cur_room)
 })
 
-socket.on('violation', (msg)=>{
+socket.on('alert', (msg)=>{
 	$('#play-btn').removeClass('w3-disabled')
+	alert_big(msg)
+})
+
+function alert_big(msg){
 	$('#error-msg-bg').show()
 	$('#error-msg').text(' '+msg+' ')
 	setTimeout(()=>{ $('#error-msg-bg').hide()}, 3000);
-})
+}
 /////////////////////////////////////
 // Public(Shared) Update
 /////////////////////////////////////
@@ -156,7 +160,7 @@ function setPlayable(roomData){
 	for (const [sid, userData] of Object.entries(roomData.sockets)){
 		// console.log(userData.seat+'=='+cur)
 		if (cur == userData.seat && sid == socket.id){
-			console.log(userData.nickname+'\'s turn') 
+			alert_big('Your turn!')
 			// current seat no. equals the user's and if this client is that user
 			$('#play-btn').removeClass('w3-disabled')
 		} 
@@ -188,7 +192,7 @@ function reloadSlots(roomData){
 	}
 	for (const [sid, user] of Object.entries(roomData.sockets)){
 		$('#player'+user.seat).append($('<p><b>'+user.nickname+'</b></p>'))
-		$('#player'+user.seat).append($('<p>'+user.hand.length+'</p>'))
+		$('#player'+user.seat).append($('<p>Cards: '+user.hand.length+'</p>'))
 
 		if (roomData.game.state==game_state.WAITING){
 			if (user.ready)
@@ -197,9 +201,13 @@ function reloadSlots(roomData){
 				$('#player'+user.seat).append($('<p>NOT READY</p>'))
 		} else {
 			if (user.ready){
+
 				$('#player'+user.seat).append($('<p>PLAYING</p>'))
 				if (user.hand.length == 0)
 					$('#player'+user.seat).append($('<p>WINNER</p>'))
+				else
+					$('#player'+user.seat).append($('<p>Turn: '+roomData.game.order[user.seat]+'</p>'))
+
 			}
 			else
 				$('#player'+user.seat).append($('<p>SPECTATOR</p>'))

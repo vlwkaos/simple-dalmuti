@@ -127,7 +127,7 @@ io.on('connection', (socket)=> {
             io.to(room_name).emit('refresh game room', socket.adapter.rooms[room_name])
 
         } else
-        if (checkValidity(socket.id, socket.adapter.rooms[room_name], selected_card)){
+        if (checkValidity(socket, socket.adapter.rooms[room_name], selected_card)){
             if (checkRule(socket.adapter.rooms[room_name], selected_card)){
                 // Everything seems fine. 
                 
@@ -156,11 +156,11 @@ io.on('connection', (socket)=> {
 
             } else {
                 // nope
-                socket.emit('violation', 'Please choose the right cards.')
+                socket.emit('alert', 'Please choose the right cards.')
             }
 
         } else {
-            socket.emit('violation', 'Please do not attempt to change the code.')
+            socket.emit('alert', 'Please do not attempt to change the code.')
         }
     })
 
@@ -282,7 +282,7 @@ function joinRoom(socket,room_name){
         socket.leave(room_name)
         socket.join('waiting room')
         socket.emit('refresh waiting room', socket.userData, getCustomRooms(socket))
-        socket.emit('violation', 'Room is full')
+        socket.emit('alert', 'Room is full')
         return
     }
 
@@ -305,7 +305,14 @@ function joinRoom(socket,room_name){
 }
 
 // check if selected cards are actually in hand
-function checkValidity(sid, roomData, selected_card){
+function checkValidity(socket, roomData, selected_card){
+    if (socket.userData.seat != roomData.sockets[socket.id].seat)
+        return false // illegal behavior detected
+
+    if (roomData.game.cur_order[roomData.game.cur_order_idx]!=socket.userData.seat)
+        return false // illegal behavior detected
+
+    let sid = socket.id
     let hand_map = {}
     for (let i=0;i < roomData.sockets[sid].hand.length;i++){
         let card = roomData.sockets[sid].hand[i]
