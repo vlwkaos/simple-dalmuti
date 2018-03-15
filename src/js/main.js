@@ -109,7 +109,7 @@ socket.on('refresh game room', (roomData)=>{
 	$('#waiting-room').hide()
 	$('#game-room').show()	
 
-	console.log(roomData)
+	//console.log(roomData)
 	// list shared info
 	reloadSlots(roomData)
 
@@ -297,7 +297,7 @@ function reloadField(roomData){
 				    while (m-- > 0) last_array.push(card)
 			}
 			
-			console.log(last_array)
+			//console.log(last_array)
 			
 			for (let i=0;i<last_array.length;i++){
 				let $carddiv = $("<div class='w3-border w3-border-black w3-display-container w3-"+card_colors[last_array[i]-1]+"' style='width: 69px; height:10vh; position:absolute; left: calc(100% * "+i+" / "+last_array.length+
