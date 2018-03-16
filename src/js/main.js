@@ -79,7 +79,7 @@ function alert_big(msg){
 // Public(Shared) Update
 /////////////////////////////////////
 // Enter waiting Room
-socket.on('refresh waiting room',(user, rooms)=>{
+socket.on('refresh waiting room',(user, rooms, user_count)=>{
 	//transition to waiting room screen
 	$('#game-room').hide()
 	$('#waiting-room').show()//TODO add room list
@@ -93,7 +93,7 @@ socket.on('refresh waiting room',(user, rooms)=>{
 		roomCount++
 	}
 	$('#room-list').append('<li class="w3-half w3-border" onclick="document.getElementById(\'id01\').style.display=\'block\'">Create New Room</li>')
-	$('#title').text('DalmutiOnline('+roomCount+' Rooms)')
+	$('#title').text('DalmutiOnline('+roomCount+' rooms / '+user_count+' users online)')
 })
 
 //Enter Game Room

@@ -15,17 +15,19 @@ app.get('/', (req, res) => {
 /////////////////////////////////////
 var roomNumber=0
 var connectNumber=1;
+var user_count = 0;
 /////////////////////////////////////
 /// key = # num roomname
 /// remember to update orderly then send
 ///
 /////////////////////////////////////
 io.on('connection', (socket)=> {
+    user_count++
     socket.userData = new Player('Guest'+connectNumber, 'waiting room') // Higher-Level game related Data of socket
     connectNumber++
      // give update to a client only
     socket.join('waiting room')
-    io.to('waiting room').emit('refresh waiting room', socket.userData, getCustomRooms(socket))
+    io.to('waiting room').emit('refresh waiting room', socket.userData, getCustomRooms(socket), user_count)
     console.log(socket.userData.nickname+' joined waiting room')
 
     /////////////////////////////////////
@@ -165,11 +167,12 @@ io.on('connection', (socket)=> {
     })
 
     socket.on('disconnect', () => {
+        user_count--
         console.log(socket.userData.nickname+' disconnected from server');
 
         updateRoomDisconnect(socket, socket.userData.cur_room)
         
-        io.to('waiting room').emit('refresh waiting room', socket.userData, getCustomRooms(socket))
+        io.to('waiting room').emit('refresh waiting room', socket.userData, getCustomRooms(socket), user_count)
         //We want to avoid user from disconnecting during game
         //so if this happens its 'all disconnect'. no leaving during the game
         // redistribute
@@ -281,7 +284,7 @@ function joinRoom(socket,room_name){
         console.log('room full')
         socket.leave(room_name)
         socket.join('waiting room')
-        socket.emit('refresh waiting room', socket.userData, getCustomRooms(socket))
+        socket.emit('refresh waiting room', socket.userData, getCustomRooms(socket), user_count)
         socket.emit('alert', 'Room is full')
         return
     }
@@ -297,7 +300,7 @@ function joinRoom(socket,room_name){
 
     
     //refresh list
-    io.to('waiting room').emit('refresh waiting room', socket.userData, getCustomRooms(socket))
+    io.to('waiting room').emit('refresh waiting room', socket.userData, getCustomRooms(socket), user_count)
     io.to(room_name).emit('refresh game room',  socket.adapter.rooms[room_name]) // send info about room
     io.to(room_name).emit('chat connection', socket.userData)
 
