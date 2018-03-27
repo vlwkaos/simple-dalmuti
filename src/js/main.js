@@ -38,6 +38,7 @@ $(function() {
 
     $('#form-chatting').submit(()=>{
     	socket.emit('chat message', $('#message-input').val())
+    	
     	$('#message-input').val('');
     	return false
     })
@@ -142,6 +143,8 @@ socket.on('chat announce', (msg, color)=>{
 
 socket.on('chat message', (nickname, msg)=>{
 	$('#chat-messages').append($('<li>').text(nickname+': '+msg));
+	$('#chat-messages').scrollTop($('#chat-messages').prop("scrollHeight"));
+
 })
 /////////////////////////////////////
 //
