@@ -46,14 +46,17 @@ $(function() {
 
     // button, must be checked on server side
     $('#ready-btn').on('click',()=>{
-    	socket.emit('ready')
+    	if (!$('#ready-btn').hasClass('w3-disabled')){
+    		socket.emit('ready')
+    	}
     })
 
     // pass turn, next order
     $('#play-btn').on('click',()=>{
-    	$('#play-btn').addClass('w3-disabled')
-
-    	socket.emit('play', selected_card)
+    	if (!$('#play-btn').hasClass('w3-disabled')){
+    		$('#play-btn').addClass('w3-disabled')
+    		socket.emit('play', selected_card)
+    	}
     })
 });
 
@@ -110,7 +113,8 @@ socket.on('refresh game room', (roomData)=>{
 	$('#waiting-room').hide()
 	$('#game-room').show()	
 
-	//console.log(roomData)
+	// debug
+	console.log(roomData)
 	// list shared info
 	reloadSlots(roomData)
 
@@ -152,9 +156,9 @@ socket.on('chat message', (nickname, msg)=>{
 function setPlayable(roomData){
 	// check who?
 	let cur = -1
-	if (roomData.game.cur_order) // meaning game started and has an order set
-		cur = roomData.game.cur_order[roomData.game.cur_order_idx]
-
+	if (roomData.game.state == game_state.PLAYING)
+		cur = roomData.game.cur_order_idx
+	
 	for (let i=0;i<8;i++)
 		$('#player'+i).removeClass('w3-bottombar')
 	$('#player'+cur).addClass('w3-bottombar')
@@ -208,11 +212,14 @@ function reloadSlots(roomData){
 				$('#player'+user.seat).append($('<p>PLAYING</p>'))
 				if (user.hand.length == 0)
 					$('#player'+user.seat).append($('<p>WINNER</p>'))
-				else
-					$('#player'+user.seat).append($('<p>Turn: '+roomData.game.order[user.seat]+'</p>'))
+				else {
+					// show pass or not
+					if (roomData.game.order[user.seat]==0)
+						$('#player'+user.seat).append($('<p>PASSED</p>'))
+				}
 
 			}
-			else
+			else // not ready, not in game
 				$('#player'+user.seat).append($('<p>SPECTATOR</p>'))
 		}
 	}

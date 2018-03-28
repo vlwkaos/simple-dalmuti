@@ -81,7 +81,7 @@ io.on('connection', (socket)=> {
                 console.log(room_name+": game started")
                 io.to(room_name).emit('chat announce', 'The game has started.','blue')
                 // set order, shuffle, etc.
-                socket.adapter.rooms[room_name].game.start()
+                socket.adapter.rooms[room_name].game.start(socket.adapter.rooms[room_name])
                 
                 // distribute
                 console.log(socket.adapter.rooms[room_name])
@@ -105,64 +105,81 @@ io.on('connection', (socket)=> {
 
     socket.on('play', (selected_card)=>{
 
+
+
+
         let room_name = socket.userData.cur_room
 
-        // delete 0 cards, this won't happen unless someone messed with client code
-        for (const [card, val] of Object.entries(selected_card)){
-            if (val == 0)
-                delete selected_card[card]
-            console.log('checking, how deleting in loop affects iterating')    
+        // but first of all, is it playing?
+        if (socket.adapter.rooms[room_name].game.state != game_state.PLAYING){
+            socket.emit('alert', 'This should not happen.')
+            return
         }
-        console.log(selected_card)
 
-        // check PASS
-        if (Object.keys(selected_card).length == 0){
-            // 0 card submitted
-            let tmp_idx = socket.adapter.rooms[room_name].game.cur_order_idx
-            socket.adapter.rooms[room_name].game.cur_order[tmp_idx] = -1
+        if (checkOrder(socket, socket.adapter.rooms[room_name])){
 
-            // if this is last pass, erase last hand give prior to last player who played
-            // also renew cur_order for next round
-            // and update last hand. Last hand will be used to display cards on field
-            socket.adapter.rooms[room_name].game.nextPlayer(selected_card)
+            // delete 0 cards, this won't happen unless someone messed with client code
+            for (const [card, val] of Object.entries(selected_card)){
+                if (val == 0)
+                    delete selected_card[card]
+                console.log('checking, how deleting in loop affects iterating')    
+            }
+            console.log(selected_card)
 
-            io.to(room_name).emit('refresh game room', socket.adapter.rooms[room_name])
+            // check PASS
+            if (Object.keys(selected_card).length == 0){
+                // 0 card submitted
+                let tmp_idx = socket.adapter.rooms[room_name].game.cur_order_idx //현재 순서
+                socket.adapter.rooms[room_name].game.cur_order[tmp_idx] = 0 // pass
 
-        } else
-        if (checkValidity(socket, socket.adapter.rooms[room_name], selected_card)){
-            if (checkRule(socket.adapter.rooms[room_name], selected_card)){
-                // Everything seems fine. 
-                
-                // update hand
-                updateHand(socket, socket.adapter.rooms[room_name], selected_card)
-                //
-                if (socket.adapter.rooms[room_name].sockets[socket.id].hand.length == 0){
-                    let tmp = socket.adapter.rooms[room_name].game.order.indexOf(socket.userData.seat)
-                    socket.adapter.rooms[room_name].game.updateOrder(tmp,room_name)
-                    io.to(room_name).emit('chat announce', socket.userData.nickname+' has won!!!', 'green')
-
-                    if (socket.adapter.rooms[room_name].game.order.length==1){
-                        io.to(room_name).emit('chat announce', 'The game has ended due to only one player remaining.', 'red')
-                        //end game
-                        socket.adapter.rooms[room_name].game.end()
-                        for (const [sid,userData] of Object.entries(socket.adapter.rooms[room_name].sockets)) {
-                            userData.reset()
-                        }
-                    }
-
-                } else {
-                    socket.adapter.rooms[room_name].game.nextPlayer(selected_card)
-                }
+                // if this is last pass, erase last hand give prior to last player who played
+                // also renew cur_order for next round
+                // and update last hand. Last hand will be used to display cards on field
+                socket.adapter.rooms[room_name].game.nextPlayer(selected_card)
 
                 io.to(room_name).emit('refresh game room', socket.adapter.rooms[room_name])
 
-            } else {
-                // nope
-                socket.emit('alert', 'Please choose the right cards.')
-            }
+            } else
+            if (checkValidity(socket, socket.adapter.rooms[room_name], selected_card)){
+                if (checkRule(socket.adapter.rooms[room_name], selected_card)){
+                    // Everything seems fine. 
+                    
+                    // update hand
+                    updateHand(socket, socket.adapter.rooms[room_name], selected_card)
+                    
+                    //
+                    if (socket.adapter.rooms[room_name].sockets[socket.id].hand.length == 0){
+                        // win due to empty hand
+                        socket.adapter.rooms[room_name].game.updateOrder(socket.userData.seat,room_name)
+                        io.to(room_name).emit('chat announce', socket.userData.nickname+' has won!!!', 'green')
 
-        } else {
-            socket.emit('alert', 'Please do not attempt to change the code.')
+                        if (socket.adapter.rooms[room_name].game.isOneLeft()){
+                            io.to(room_name).emit('chat announce', 'The game has ended due to only one player remaining.', 'red')
+                            //end game
+                            socket.adapter.rooms[room_name].game.end()
+                            for (const [sid,userData] of Object.entries(socket.adapter.rooms[room_name].sockets)) {
+                                userData.reset()
+                            }
+                        }
+
+                    } 
+                        
+                    
+                    socket.adapter.rooms[room_name].game.nextPlayer(selected_card)
+                    // refresh
+                    io.to(room_name).emit('refresh game room', socket.adapter.rooms[room_name])
+
+                } else {
+                    // nope
+                    socket.emit('alert', 'Please choose the right cards.')
+                }
+
+            } else {
+                socket.emit('alert', 'This should not happen.')
+            }
+        }// check order 
+        else {
+            socket.emit('alert', 'Please wait for your turn.')
         }
     })
 
@@ -226,23 +243,26 @@ function updateRoomDisconnect(socket,room_name){
         // user left during the game
         // omit from order list
         if (socket.adapter.rooms[room_name].game.state == game_state.PLAYING){
-            let tmp = socket.adapter.rooms[room_name].game.order.indexOf(socket.userData.seat)
-            socket.adapter.rooms[room_name].game.updateOrder(tmp,room_name)
+            socket.adapter.rooms[room_name].game.updateOrder(socket.userData.seat,room_name)
 
-            if (socket.adapter.rooms[room_name].game.order.length==1){
+
+            if (socket.adapter.rooms[room_name].game.isOneLeft()){
                 io.to(room_name).emit('chat announce', 'The game has ended due to only one player remaining.')
                 //end game
                 socket.adapter.rooms[room_name].game.end()
                 for (const [sid,userData] of Object.entries(socket.adapter.rooms[room_name].sockets)) {
                     userData.reset()
                 }
+                //
             }
 
             // pass or evaluate or refresh during game...? pass turn?
             if (socket.adapter.rooms[room_name].game.cur_order_idx == socket.userData.seat){
                 // pass turn
+                socket.adapter.rooms[room_name].game.nextPlayer({})
             }
             // 아무튼 그래야 자기 턴인 애가 나갔을 때, 아닌애가 나갔을 때
+            io.to(room_name).emit('refresh game room', socket.adapter.rooms[room_name])
         }    
     }
 
@@ -307,13 +327,18 @@ function joinRoom(socket,room_name){
     socket.emit('update sender', socket.userData)
 }
 
-// check if selected cards are actually in hand
-function checkValidity(socket, roomData, selected_card){
-    if (socket.userData.seat != roomData.sockets[socket.id].seat)
+function checkOrder(socket, roomData){
+    if (socket.userData.seat != roomData.sockets[socket.id].seat) // correctly in the room?
         return false // illegal behavior detected
 
-    if (roomData.game.cur_order[roomData.game.cur_order_idx]!=socket.userData.seat)
+    if (roomData.game.cur_order_idx!=socket.userData.seat) // check turn
         return false // illegal behavior detected
+
+    return true
+}
+
+// check if selected cards are actually in hand
+function checkValidity(socket, roomData, selected_card){
 
     let sid = socket.id
     let hand_map = {}
@@ -440,49 +465,52 @@ class Game{
         this.state = game_state.WAITING
         this.readyCount = 0
         this.deck = this.prepareDeck()
-        this.cur_order_idx = 0
-        // order: order for the whole game
-        // cur_order: currunt round order (in case of passes)
+        this.cur_order_idx = -1
     }
 
+    //
     updateOrder(omit_i){
-        let tmp_order = []
-        let tmp_cur_order = []
-        for (let i=0;i<this.order.length;i++){
-            if (i!=omit_i) {
-                tmp_order.push(this.order[i])
-                tmp_cur_order.push(this.cur_order[i])
-            }
-        }
-        this.order = tmp_order
-        this.cur_order = tmp_cur_order
-
-
+        this.order[omit_i] = false
+        this.cur_order[omit_i] = -1
     }
 
-    start(){
+    start(roomData){
         this.state = game_state.PLAYING
 
-        // Set Order 
-        this.order = new Array(this.readyCount)
-        for (let i=0;i<this.order.length;i++){
-            this.order[i]=i
+        // order: order for the whole game
+        // cur_order: currunt round order (in case of passes)
+        this.order = new Array(8).fill(false)
+        this.cur_order = new Array(8).fill(-1)
+        // get ready  
+        for (const [sid,userData] of Object.entries(roomData.sockets)) {
+            if (userData.ready){
+                this.order[userData.seat] = true
+            }
         }
-        this.order = this.shuffle(this.order)
-        this.cur_order = this.order.slice() // copy to cur_order
-        
+
+        // set cur order
+        // -1 not in game
+        // 0 pass
+        // 1 in game
+        for (let i=0;i<this.order.length;i++){
+            if (this.order[i]) 
+                this.cur_order[i] = 1
+            else
+                this.cur_order[i] = -1
+        }
+
+        this.cur_order_idx = Math.floor(Math.random() * 8)
+        while (this.cur_order[this.cur_order_idx] < 1)
+            this.cur_order_idx = Math.floor(Math.random() * 8) // cursor
+
         // shuffle deck
         this.deck = this.shuffle(this.deck)
-
-        this.cur_order_idx = 0
-        //distribute, outside
 
     }
 
     end(){
         this.state = game_state.WAITING
         this.readyCount = 0
-        this.cur_order_idx = 0
         delete this.order
         delete this.cur_order
         delete this.last
@@ -490,19 +518,26 @@ class Game{
 
     nextRound(){
         // renwe cur_order
-        console.log('New round')
-        this.cur_order = this.order.slice()
+        for (let i=0;i<this.order.length;i++){
+            if (this.order[i]) 
+                this.cur_order[i] = 1
+            else
+                this.cur_order[i] = -1
+        }
+
         delete this.last
     }
 
     nextPlayer(selected_card){
-        console.log(this.cur_order)
-        this.cur_order_idx = (this.cur_order_idx+1) % this.readyCount
-        while (this.cur_order[this.cur_order_idx] == -1)
-            this.cur_order_idx = (this.cur_order_idx+1) % this.readyCount
-        // if -1 increment until it is not
+        if (!this.cur_order)
+            return
+        console.log(this.cur_order_idx)
+        this.cur_order_idx = (this.cur_order_idx+1) % this.cur_order.length
+        while (this.cur_order[this.cur_order_idx] < 1)
+            this.cur_order_idx = (this.cur_order_idx+1) % this.cur_order.length
+        // if not playable increment until it is
         
-        // update last if not pass
+        // update last hand(field) if not pass
         if (Object.keys(selected_card).length > 0){
             this.last = selected_card
             let count = 0
@@ -512,18 +547,27 @@ class Game{
                 count+=val
             }
             this.last.count = count
-
         }
+
         // if it comes to the same user, the round finishes         
         let still_playing = 0
         for (let i=0;i<this.cur_order.length;i++){
-            if (this.cur_order[i] != -1)
-                still_playing++
+            if (this.cur_order[i] == 1)
+                still_playing++ // count playable user
         }
 
-        if (still_playing == 1){
+        if (still_playing == 1){ // only one
             this.nextRound()
         }
+    }
+
+    isOneLeft(){
+        let cnt = 0
+        for (let i=0;i<this.order.length;i++)
+            if (this.order[i])
+                cnt++
+
+        return cnt <= 1
     }
 
     /////////////////////////////////////
