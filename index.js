@@ -77,6 +77,7 @@ io.on('connection', (socket)=> {
             // check game state, is it WAITING? more than 2 ready?
             // Shared data, so use roomData not userData 
             if (socket.adapter.rooms[room_name].length >=2 && socket.adapter.rooms[room_name].game.readyCount==socket.adapter.rooms[room_name].length){
+
                 //start game
                 console.log(room_name+": game started")
                 io.to(room_name).emit('chat announce', 'The game has started.','blue')
@@ -95,7 +96,7 @@ io.on('connection', (socket)=> {
                     cnt++
                 }
 
-
+                io.to('waiting room').emit('refresh waiting room', socket.userData, getCustomRooms(socket), user_count) // notify start
                 io.to(room_name).emit('refresh game room', socket.adapter.rooms[room_name])
             }
         }
@@ -247,7 +248,7 @@ function updateRoomDisconnect(socket,room_name){
 
 
             if (socket.adapter.rooms[room_name].game.isOneLeft()){
-                io.to(room_name).emit('chat announce', 'The game has ended due to only one player remaining.')
+                io.to(room_name).emit('chat announce', 'The game has ended due to only one player remaining.', 'red')
                 //end game
                 socket.adapter.rooms[room_name].game.end()
                 for (const [sid,userData] of Object.entries(socket.adapter.rooms[room_name].sockets)) {
