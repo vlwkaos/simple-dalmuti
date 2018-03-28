@@ -8,8 +8,6 @@
     <script src="/socket.io/socket.io.js"></script>
     <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
     <script src="./js/main.js"></script>
-    <style>
-    </style>
   </head>
   <body>
     <div id="error-msg-bg" class="w3-text-white w3-container w3-round" style="z-index: 10; display:none; background-color:rgba(0, 0, 0, 0.5); position:absolute; top: 40%; left:30%"><h2 id="error-msg"></h2></div>
@@ -31,10 +29,11 @@
         <span onclick="this.parentElement.style.display='none'"
         class="w3-button w3-blue w3-large w3-display-topright">&times;</span>
         <h3>Changelog v0.9 - MG</h3>
-        <p>1. Nickname change is saved locally.</p>
-        <p>2. Game room state will be displayed.</p>
-        <p>3. Most bugs fixed.</p>
-        <p>4. You still can't leave a room</p>
+        <ul>
+          <li>Revamped, most bugs fixed.</li>
+          <li>Minor UI changes.</li>
+          <li><a href="/help">How to play?</a></li>
+        </ul>
       </div>
 
       <!-- create room modal -->

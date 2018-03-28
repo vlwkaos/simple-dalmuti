@@ -8,7 +8,11 @@ app.use(express.static(__dirname + '/src'));
 
 app.get('/', (req, res) => {
     res.sendFile(__dirname + '/src/index.html');
-});
+})
+
+app.get('/help',(req,res)=>{
+    res.sendFile(__dirname + '/src/help.html');
+})
 
 /////////////////////////////////////
 /// Server Variables
