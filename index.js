@@ -384,11 +384,24 @@ function checkRule(roomData, selected_card){
         if (roomData.game.last.count != count)
             return false // else illegal
 
-        // except 13, the card no. must be smaller
-        for (const [card, val] of Object.entries(selected_card)){
-            if (card != 13 && roomData.game.last.num - card <= 0) {
-                console.log(roomData.game.last.num+' <= '+card)
-                return false // if any of card no. is equal/greater than the last one, no go
+        
+
+        //single card type which is normal, then 13 has no power
+        if (Object.keys(selected_card).length == 1) {
+            for (const [card, val] of Object.entries(selected_card)){
+                if (roomData.game.last.num - card <= 0) { // can't throw 13 alone
+                    console.log(roomData.game.last.num+' <= '+card)
+                    return false // if any of card no. is equal/greater than the last one, no go
+                }
+            }
+        } else { // more than 1 card type
+            console.log('13 included')
+            // case with with 13
+            // except 13, the card no. must be smaller
+            for (const [card, val] of Object.entries(selected_card)){
+                if (card != 13 && roomData.game.last.num - card <= 0) {
+                    return false // if any of card no. is equal/greater than the last one, no go
+                }
             }
         }
 
