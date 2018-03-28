@@ -93,7 +93,7 @@ socket.on('refresh waiting room',(user, rooms, user_count)=>{
 	$('#room-list').empty()
 
 	for (const [key, room] of Object.entries(rooms)) {
-		appendGameRoom(key,room.length)
+		appendGameRoom(key,room.length, room.game.state)
 		roomCount++
 	}
 	$('#room-list').append('<li class="w3-half w3-border" onclick="document.getElementById(\'id01\').style.display=\'block\'">Create New Room</li>')
@@ -114,7 +114,7 @@ socket.on('refresh game room', (roomData)=>{
 	$('#game-room').show()	
 
 	// debug
-	console.log(roomData)
+	// console.log(roomData)
 	// list shared info
 	reloadSlots(roomData)
 
@@ -158,7 +158,7 @@ function setPlayable(roomData){
 	let cur = -1
 	if (roomData.game.state == game_state.PLAYING)
 		cur = roomData.game.cur_order_idx
-	
+
 	for (let i=0;i<8;i++)
 		$('#player'+i).removeClass('w3-bottombar')
 	$('#player'+cur).addClass('w3-bottombar')
@@ -175,8 +175,14 @@ function setPlayable(roomData){
 }
 
 
-function appendGameRoom(name, length){
-	let $newli = $("<li class='w3-half w3-border game-room'><b>"+name+" - "+length+"/8</li>")
+function appendGameRoom(name, length, state){
+	let str = ""
+	if (state == game_state.WAITING)
+		str = "Waiting"
+	else if (state == game_state.PLAYING)
+		str = "Playing"
+
+	let $newli = $("<li class='w3-half w3-border game-room'><b>"+name+" - "+length+"/8 "+str+"</li>")
 	$newli.on('click',()=>{
 		//join room
 		showLoadingText()
