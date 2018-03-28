@@ -229,7 +229,7 @@ function reloadSlots(roomData){
 					$('#player'+user.seat).append($('<p>WINNER</p>'))
 				else {
 					// show pass or not
-					if (roomData.game.order[user.seat]==0)
+					if (roomData.game.cur_order[user.seat]==0)
 						$('#player'+user.seat).append($('<p>PASSED</p>'))
 				}
 
