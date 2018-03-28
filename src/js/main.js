@@ -10,6 +10,14 @@ var socket = io()
 
 $(function() {
 
+
+	// no compatibility check, because its for losers
+	//check previous nickname, set it to it
+	if (localStorage.getItem('localnickname')){
+		$('.nickname').text(localStorage.getItem('localnickname'))
+		socket.emit('set new nickname',localStorage.getItem('localnickname'))
+	}
+
 	/////////////////////////////////////
 
 	socket.emit('init') // for sender-only update
@@ -29,6 +37,7 @@ $(function() {
     })
 
     $('#form-set-nickname').submit(()=>{
+    	localStorage.setItem('localnickname', $('#set-nickname').val());
     	socket.emit('set new nickname', $('#set-nickname').val())
     	$('.nickname').text($('#set-nickname').val()) // client change
     	$('#set-nickname').val('');
