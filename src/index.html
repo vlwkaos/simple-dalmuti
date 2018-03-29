@@ -9,7 +9,7 @@
     <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
     <script src="./js/main.js"></script>
   </head>
-  <body>
+  <body style="min-width: 480px;">
     <div id="error-msg-bg" class="w3-text-white w3-container w3-round" style="z-index: 10; display:none; background-color:rgba(0, 0, 0, 0.5); position:absolute; top: 40%; left:30%"><h2 id="error-msg"></h2></div>
 
     <!-- Waiting Room Start -->
@@ -18,20 +18,20 @@
       <div class="w3-bar w3-blue-grey w3-card-4">
         <div class="w3-bar-item w3-padding-16"><b id="title">DalmutiOnline(roomNo)</b></div>
         <div  class="nickname w3-bar-item w3-button w3-right w3-grey w3-padding-16" onclick="document.getElementById('id02').style.display='block'">placeholder</div>
-        <div class="w3-bar-item w3-right w3-padding-16">Click to change your name - </div>
       </div>
       <!-- Listing Room--> 
       <ul class="w3-ul w3-hoverable" id="room-list">
 
       </ul>
       <!-- info -->
-      <div class="w3-panel w3-blue w3-display-container" style="position:absolute; top: calc(100vh - 266px); height: 250px; width:50%;">
+      <div class="w3-panel w3-blue w3-display-container" style="position:absolute; top: calc(100vh - 266px); height: 250px; width:100%;">
         <span onclick="this.parentElement.style.display='none'"
         class="w3-button w3-blue w3-large w3-display-topright">&times;</span>
         <h3>Changelog v0.9 - MG</h3>
         <ul>
           <li>Revamped, most bugs fixed.</li>
           <li>Minor UI changes.</li>
+          <li>Click upper right corner to change your name</li>
           <li><a target="_blank" href="/help">How to play?</a></li>
         </ul>
       </div>

@@ -152,7 +152,7 @@ io.on('connection', (socket)=> {
                     // update hand
                     updateHand(socket, socket.adapter.rooms[room_name], selected_card)
                     
-                    //
+                    //Winning condition
                     if (socket.adapter.rooms[room_name].sockets[socket.id].hand.length == 0){
                         // win due to empty hand
                         socket.adapter.rooms[room_name].game.updateOrder(socket.userData.seat,room_name)

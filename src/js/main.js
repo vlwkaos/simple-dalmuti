@@ -16,6 +16,8 @@ $(function() {
 	if (localStorage.getItem('localnickname')){
 		$('.nickname').text(localStorage.getItem('localnickname'))
 		socket.emit('set new nickname',localStorage.getItem('localnickname'))
+	} else {
+		document.getElementById('id02').style.display='block'
 	}
 
 	/////////////////////////////////////
@@ -37,10 +39,12 @@ $(function() {
     })
 
     $('#form-set-nickname').submit(()=>{
-    	localStorage.setItem('localnickname', $('#set-nickname').val());
-    	socket.emit('set new nickname', $('#set-nickname').val())
-    	$('.nickname').text($('#set-nickname').val()) // client change
-    	$('#set-nickname').val('');
+    	if ($('#set-nickname').val()!=''){
+	    	localStorage.setItem('localnickname', $('#set-nickname').val());
+	    	socket.emit('set new nickname', $('#set-nickname').val())
+	    	$('.nickname').text($('#set-nickname').val()) // client change
+	    	$('#set-nickname').val('');
+    	} 
     	return false
     })
 
