@@ -79,6 +79,7 @@ io.on('connection', (socket)=> {
             io.to(room_name).emit('refresh game room', socket.adapter.rooms[room_name])
 
             // check game state, is it WAITING? more than 2 ready?
+
             // Shared data, so use roomData not userData 
             if (socket.adapter.rooms[room_name].length >=2 && socket.adapter.rooms[room_name].game.readyCount==socket.adapter.rooms[room_name].length){
 
@@ -103,16 +104,12 @@ io.on('connection', (socket)=> {
                 io.to('waiting room').emit('refresh waiting room', socket.userData, getCustomRooms(socket), user_count) // notify start
                 io.to(room_name).emit('refresh game room', socket.adapter.rooms[room_name])
             }
-        }
+        } 
 
 
     })
 
     socket.on('play', (selected_card)=>{
-
-
-
-
         let room_name = socket.userData.cur_room
 
         // but first of all, is it playing?
