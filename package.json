@@ -9,7 +9,7 @@
   "author": "MG",
   "license": "ISC",
   "dependencies": {
-    "express": "^4.16.2",
+    "express": "^4.17.3",
     "socket.io": "^2.5.0"
   },
   "engines": {
